@@ -1,0 +1,97 @@
+------ Criação do Superusuário (admEstoque) ------
+create user admestoque with superuser encrypted password 'abc';
+
+------ Criação do Banco ------
+create database estoque with owner = admestoque;
+
+==========================================================================================================
+
+------ Criação das Tabelas ------
+
+    ------ Clientes ------
+create table Clientes (
+    CodigoCliente int constraint cliente_pk primary key,
+    Nome          varchar(40) constraint nome_cliente_nn not null);
+
+    ------ Cidades ------
+create table Cidades(
+    CodigoCidade    int constraint cidade_pk primary key,
+    NomeCidade      varchar(50) constraint nome_cidade_nn not null);
+
+    ------ Produtos ------
+create table Produtos (
+    CodigoProduto       int constraint produto_pk primary key,
+    DescricaoProduto    varchar(80) constraint descricao_nn not null,
+    DataCadastro        date constraint date_cadastro_nn not null,
+    ValoUnitario        numeric(13,3) constraint valor_produto_nn not null);
+
+==========================================================================================================
+
+------ Criação dos Papéis (ROLES) e Usuários ------
+
+    ------ Cadastro ------
+create user Cadastro with encrypted password 'abc';
+grant connect on database estoque to Cadastro;
+grant select, insert, update on Cidades, Produtos to Cadastro;
+
+    ------ Testes Cadastro ------
+\c estoque cadastro;
+
+select * from Clientes; -NOT OK
+select * from Cidades; -OK
+select * from Produtos; -OK
+
+insert into Clientes (CodigoCliente, Nome) values (1, 'João'); -NOT OK
+insert into Cidades (CodigoCidade, NomeCidade) values (1, 'João Pessoa'); -OK
+insert into Produtos (CodigoProduto, DescricaoProduto, DataCadastro, ValoUnitario) values (1, 'Monitor',  '22/08/2026', 799.00); -OK
+
+UPDATE Clientes SET Nome = 'Maria' WHERE CodigoCliente = 1; -NOT OK
+UPDATE Cidades SET NomeCidade = 'Mato Grosso' WHERE CodigoCidade = 1; -OK
+UPDATE Produtos SET DescricaoProduto = 'Teclado' WHERE CodigoProduto = 1; -OK
+
+==========================================================================================================
+
+    ------ Auxiliar ------
+create user Auxiliar with encrypted password 'abc';
+grant connect on database estoque to Auxiliar;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO Auxiliar;
+
+    ------ Testes Auxiliar ------
+\c estoque auxiliar;
+
+select * from Clientes; -OK
+select * from Cidades; -OK
+select * from Produtos; -OK
+
+insert into Clientes (CodigoCliente, Nome) values (1, 'João'); -NOT OK
+insert into Cidades (CodigoCidade, NomeCidade) values (1, 'João Pessoa'); -NOT OK
+insert into Produtos (CodigoProduto, DescricaoProduto, DataCadastro, ValoUnitario) values (1, 'Monitor',  '22/08/2026', 799.00); -NOT OK
+
+UPDATE Clientes SET Nome = 'Maria' WHERE CodigoCliente = 1; -NOT OK
+UPDATE Cidades SET NomeCidade = 'Mato Grosso' WHERE CodigoCidade = 1; -NOT OK
+UPDATE Produtos SET DescricaoProduto = 'Teclado' WHERE CodigoProduto = 1; -NOT OK
+
+==========================================================================================================
+
+    ------ Gerente ------
+create user Gerente with encrypted password 'abc';
+grant connect on database estoque to Gerente;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO Gerente;
+grant update on Produtos to Gerente;
+
+    ------ Testes Gerente ------
+\c estoque gerente;
+
+select * from Clientes; -OK
+select * from Cidades; -OK
+select * from Produtos; -OK
+
+insert into Clientes (CodigoCliente, Nome) values (1, 'João'); -NOT OK
+insert into Cidades (CodigoCidade, NomeCidade) values (1, 'João Pessoa'); -NOT OK
+insert into Produtos (CodigoProduto, DescricaoProduto, DataCadastro, ValoUnitario) values (1, 'Monitor',  '22/08/2026', 799.00); -NOT OK
+
+UPDATE Clientes SET Nome = 'Maria' WHERE CodigoCliente = 1; -NOT OK
+UPDATE Cidades SET NomeCidade = 'Mato Grosso' WHERE CodigoCidade = 1; -NOT OK
+UPDATE Produtos SET DescricaoProduto = 'Celular' WHERE CodigoProduto = 1; - OK
+
+

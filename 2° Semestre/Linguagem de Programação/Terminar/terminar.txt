@@ -1,0 +1,47 @@
+// Online C compiler to run C program online
+#include <stdio.h>
+
+void imprimirDeUmaN (int num) {
+    // 1. Imprimir os números de 1 a N.
+    printf ("Digite um número: ");
+    scanf ("%d", &num);
+    
+    for (int i = 1; i <= num; i++) {
+        printf ("%d ", i);
+    }
+    printf ("\n");
+}
+
+void imprimirDeNaUm (int num) {
+    // 2. Imprimir os números de N a 1.
+    printf ("Digite um número positivo: ");
+    scanf ("%d", &num);
+    
+    for (int i = num; i <= num; i--) {
+        if (i == 0){
+            break;
+        }
+        printf ("%d ", i);    
+    }
+    printf ("\n");
+}
+
+int main() {
+    
+    int opcao;
+    
+    printf ("---Escolha o qual operação quer fazer---\n");
+    printf ("\n\t1 - Imprimir os números de 1 á N.\n\t2 - Imprimir os números de N á 1.\n\t3 - Imprimir os números pares de 0 á N.\n\t4 - Imprimir os números ímpares de 1 á N.\n\t5 - Imprimir a soma dos números de 1 á N.\n\t6 - Imprimir a soma dos números pares de 1 a N.\n\t7 - Imprimir a soma dos números ímpares de 1 á N.\n");
+    printf ("---------------------------------------\n");
+    printf ("\nDigite o número correspondente a sua escolha: ");
+    scanf ("%d", &opcao);
+    
+    switch(opcao){
+        case 1:
+           imprimirDeUmaN ();
+        case 2:
+            imprimirDeNaUm ();
+        case 3:
+        
+    }
+}

@@ -1,0 +1,88 @@
+------ Criação do Superuser (adminlocadora) ------
+create user adminlocadora with superuser encrypted password 'abc';
+
+------ Criação do Banco (Locadora) ------
+create database locadora with owner = adminlocadora;
+
+==========================================================================================================
+
+------ Criação das Tabelas ------
+    
+    ------ Veículos ------
+create table veiculos(
+    codigoveiculo   int constraint veiculo_pk primary key,
+    descricao       varchar(40) constraint descricao_nn not null);
+
+    ------ Clientes ------
+create table clientes(
+    codigocliente   int constraint cliente_pk primary key,
+    nomecliente     varchar(40) constraint nome_cliente_nn not null);
+
+    ------ Funcionário ------
+create table funcionario(
+    codigofuncionario   int constraint funcionario_pk primary key,
+    nomefuncionario     varchar(30) constraint nome_funcionario_nn not null);
+
+    ------ Locações ------
+create table locacoes(
+    nrlancamento        int constraint locacao_pk primary key,
+    datasaida           date,
+    dataretorno         date,
+    codigocliente       int,
+    codigofuncionario   int,
+    constraint codigo_cliente_fk foreign key (codigocliente) references clientes (codigocliente),    
+    constraint codigo_funcionario_fk foreign key (codigofuncionario) references funcionario (codigofuncionario));
+
+==========================================================================================================
+
+------ Criação dos Papéis (ROLES) e Usuários ------
+
+    ------ Supervisores ------
+create user supervisores with encrypted password 'abc';
+grant connect on database locadora to supervisores;
+grant select, insert, update on all tables in schema public to supervisores;
+
+    ------ Testes (Supervisores) ------
+\c locadora supervisores;
+
+select * from veiculos; -OK
+select * from clientes; -OK
+select * from funcionario; -OK
+select * from locacoes; -OK
+
+insert into veiculos (codigoveiculo, descricao) values (1, 'Palio Wekend'); -OK
+insert into clientes (codigocliente, nomecliente) values (1, 'Thiago'); -OK
+insert into funcionario (codigofuncionario, nomefuncionario) values (1, 'Pedro'); -OK
+insert into locacoes (nrlancamento, codigocliente, codigofuncionario, datasaida, dataretorno) values (1, 1, 1, '22/08/2026', '26/08/2026'); -OK
+
+update veiculos set descricao = 'Creta' where codigoveiculo = 1; -OK
+update clientes set nomecliente = 'João' where codigocliente = 1; -OK
+update funcionario set nomefuncionario = 'Paulo' where codigofuncionario = 1; -OK
+update locacoes set datasaida = '18/08/2026' where nrlancamento = 1; -OK
+
+==========================================================================================================
+
+    ------ Usuário 2 ------
+create user usuario2 with encrypted password 'abc';
+grant connect on database locadora to usuario2;
+grant select, insert, update on locacoes to usuario2;
+grant select on funcionario to usuario2;
+
+    ------ Testes (Usuário 2) ------ 
+\c locadora usuario2;
+
+select * from veiculos; -NOT OK
+select * from clientes; -NOT OK
+select * from funcionario; -OK
+select * from locacoes; -OK
+
+insert into veiculos (codigoveiculo, descricao) values (1, 'Palio Wekend'); -NOT OK
+insert into clientes (codigocliente, nomecliente) values (1, 'Thiago'); -NOT OK
+insert into funcionario (codigofuncionario, nomefuncionario) values (1, 'Pedro'); -NOT OK
+insert into locacoes (nrlancamento, codigocliente, codigofuncionario, datasaida, dataretorno) values (2, 1, 1, '22/10/2026', '15/011/2026'); -OK
+
+update veiculos set descricao = 'Creta' where codigoveiculo = 1; -NOT OK
+update clientes set nomecliente = 'João' where codigocliente = 1; -NOT OK
+update funcionario set nomefuncionario = 'Paulo' where codigofuncionario = 1; -NOT OK
+update locacoes set datasaida = '18/08/2026' where nrlancamento = 1; -OK
+

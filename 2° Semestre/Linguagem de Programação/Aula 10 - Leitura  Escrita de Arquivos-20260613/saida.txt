@@ -1,0 +1,2 @@
+Escrevendo no arquivo de texto: Exemplo, 50
+Outra linha de texto.

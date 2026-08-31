@@ -1,0 +1,177 @@
+// Online C compiler to run C program online
+#include <stdio.h>
+/*
+int main() {
+    int inicio, fim, par1,par2;
+    
+    printf ("Digite o inicio: ");
+    scanf ("%d", &inicio);
+    
+    printf ("Digite o fim: ");
+    scanf ("%d", &fim);
+    
+    if (inicio >= fim){
+        printf ("Intervalo inválido");
+        return 0;
+    }
+    
+    printf ("\nIntervalo: %d e %d\n", inicio,fim);
+    printf ("\n------------------------\n");
+    
+    do{
+        if (inicio % 2 == 1){
+            inicio++;
+        }
+        
+        while (inicio <= fim){
+            printf ("Pares: %d\n", inicio);
+            inicio += 2;
+        }
+    } while ((inicio == par1)&&(fim == par2));
+    
+    printf ("\n------------------------\n");
+    
+    while (par2 >= par1){
+        printf ("inverso: %d\n", fim);
+        fim--;
+    }
+    
+    return 0;
+}
+*/
+/*
+int main(){
+    int inicio, fim, n;
+    
+    printf ("Digite o início: ");
+    scanf ("%d", &inicio);
+    
+    printf ("Digite o fim: ");
+    scanf ("%d", &fim);
+    
+    printf ("Digite o N: ");
+    scanf ("%d", &n);
+    
+    int cont = inicio;
+    
+    while (inicio <= fim){
+        printf ("%d",);
+        cont = cont + n;
+    }
+}
+*/
+
+/*
+int main(){
+    int n;
+    
+    do{
+        printf ("Digite um número positivo: ");
+        scanf ("%d",&n);
+    } while (n <= 0);
+}
+*/
+
+/*
+int main(){
+    int opcao, num1, num2, resultado;
+    
+    do{
+        printf ("------ Escolha uma opção no menu ------\n");
+        printf ("\t1 - Soma\n\t2 - Subtração\n\t3 - Multiplicação\n\t4 - Divisão\n\t0 - Sair\n");
+        printf ("----------------------------------------\n");
+        scanf ("%d", &opcao);
+        
+    } while ((opcao > 4) || (opcao < 0));
+    
+    switch (opcao){
+        case 0:
+            printf ("Saindo...\n");
+            break;
+            
+        case 1:
+            printf ("Digite o primeiro número: ");
+            scanf ("%d",&num1);
+            
+            printf ("Digite o primeiro número: ");
+            scanf ("%d",&num2);
+            
+            resultado = num1 + num2;
+            
+            printf ("Soma = %d", resultado);
+            break;
+        
+        case 2:
+            printf ("Digite o primeiro número: ");
+            scanf ("%d",&num1);
+            
+            printf ("Digite o primeiro número: ");
+            scanf ("%d",&num2);
+            
+            resultado = num1 - num2;
+            
+            printf ("Subtração = %d", resultado);
+            break;
+            
+        case 3:
+            printf ("Digite o primeiro número: ");
+            scanf ("%d",&num1);
+            
+            printf ("Digite o primeiro número: ");
+            scanf ("%d",&num2);
+            
+            resultado = num1 * num2;
+            
+            printf ("Divisão: %d", resultado);
+            break;
+        
+        case 4:
+            printf ("Digite o primeiro número: ");
+            scanf ("%d",&num1);
+            
+            printf ("Digite o primeiro número: ");
+            scanf ("%d",&num2);
+            
+            float resultado;
+            
+            if (num2 != 0){
+                resultado = (float) num1 / num2;
+            }else{
+                printf ("Divisão por zero");
+            }
+            
+            printf ("Divisão: %.2f", resultado);
+            break;
+    }
+}
+*/
+
+#include <stdio.h>                                   
+#include <stdlib.h>  
+#include <time.h>           
+
+int main() {                           
+    
+    srand(time(NULL));                       
+    int num_aleatorio = rand() %100 + 1;        
+    printf("Numero gerado: %d\n", &num_aleatorio);   
+    
+    int num_digitado;
+    
+    do{
+        printf ("Tente adivinhar uma número de 1 a 100: ");
+        scanf ("%d", &num_digitado);
+        
+        if (num_digitado != num_aleatorio){
+            if (num_digitado < num_aleatorio){
+                printf ("O número deve ser maior.\n");
+            }else{
+                printf ("O número deve ser menor.\n");
+            }
+        }
+    } while (num_digitado != num_aleatorio);
+    
+    printf ("Parabéns, você acertou\n");
+    
+    return 0;                             
+}  

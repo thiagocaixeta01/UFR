@@ -1,0 +1,204 @@
+--- Tabelas Cursos e Alunos ---
+
+create table cursos(
+    codigocurso     numeric(3) constraint curso_pk primary key,
+    nomecurso       varchar(50) constraint curso_nn not null);
+
+create table alunos(
+    matricula   numeric(4) constraint aluno_pk primary key,
+    nomealuno   varchar(50) constraint aluno_nn not null,
+    codigocurso numeric (3));
+
+--- Chave estrangeira (Fk) ---
+
+alter table alunos add constraint alunos_cursos_fk foreign key(codigocurso) references cursos(codigocurso);
+
+--- Teste de conscistencia para as regras ---
+
+insert into cursos(codigocurso, nomecurso) values (1, 'Engenharia de Software');
+insert into cursos(codigocurso, nomecurso) values (2, 'Sistema de Informação');
+
+insert into alunos(matricula, nomealuno, codigocurso) values (1, 'José', 1);
+insert into alunos(matricula, nomealuno, codigocurso) values (2, 'Maria', 2);
+
+
+==========================================================================================================
+
+
+--- Exercício Estados -> Cidades ---
+
+--- Tabela Estado e Cidade ---
+
+create table Estados(
+    codigoEstado    serial constraint estado_pk primary key, 
+    nomeEstado      varchar(30) constraint estado_nn not null,
+    sigla           varchar(2) constraint sigla_nn not null); 
+
+create table Cidades(
+    codigoCidade    serial constraint cidade_pk primary key,
+    nomeCidade      varchar(40) constraint cidade_nn not null,
+    codigoestado    int, 
+    constraint cidades_estados_fk foreign key(codigoestado) references Estados (codigoEstado));
+
+
+==========================================================================================================
+
+
+-- Unique
+
+create table produtos(
+    codigo      serial constraint produto_pk primary key,
+    descricao   varchar(30) constraint descricao_ul unique);
+
+insert into produtos(descricao) values ('Teclado'); --OK
+insert into produtos(descricao) values ('Teclado'); -- NOT OK
+
+
+==========================================================================================================
+
+
+--- Multiplos relacionamentos entre Estados e Alunos ---
+
+alter table alunos add estadonascimento int;
+alter table alunos add estadoendereco int;
+alter table alunos add estadorg int;
+
+alter table alunos add constraint alunos_nascimento_fk foreign key (estadonascimento) references Estados (codigoEstado);
+
+alter table alunos add constraint alunos_endereco_fk foreign key (estadoendereco) references Estados (codigoEstado);
+
+alter table alunos add constraint alunos_rg_fk foreign key (estadorg) references Estados (codigoEstado);
+
+
+==========================================================================================================
+
+
+--- Autorelacionamento ---
+
+create table empresas(
+    codigoempresa   serial constraint empresas_pk primary key,
+    nomeempresa     varchar(40),
+    codigofilial    int, 
+    constraint empresas_filiais_fk foreign key (codigofilial) references empresas (codigoempresas));
+
+
+==========================================================================================================
+
+
+--- Exercicio 2 ---
+
+create table Clientes (
+    codigoCliente   numeric(8) constraint cliente_pk primary key,
+    codigoCidade    int,
+    Nome            varchar(50) constraint nome_nn not null,
+    Sexo            varchar(1) constraint sexo_nn not null,
+    Salario         numeric(13,3) constraint salario_nn not null,
+    constraint clientes_cidades_fk foreign key (codigoCidade) references Cidades (codigoCidade));
+
+
+==========================================================================================================
+
+
+              ---------- Exercicio 3 - Notas ----------
+
+create user admin1 with superuser encrypted password 'abc';
+create database notas with owner = admin;
+
+---------------------- Criação de tabelas ----------------------
+
+--- Tabela ALUNOS ---
+
+create table Alunos(
+    Matricula numeric(8) constraint aluno_pk primary key,
+    NomeAluno varchar(30) constraint nome_nn not null);
+
+create table Cursos(
+    CodigoCurso numeric(3) constraint curso_pk primary key,
+    NomeCurso   varchar(50) constraint nome_curso_nn not null);
+
+create table Disciplinas (
+    CodigoDisciplina    numeric(4) constraint disciplina_pk primary key,
+    NomeDisciplina      varchar(40) constraint nome_disciplina_nn not null);
+
+create table Notas(
+    NrLancamentos       numeric(5) constraint notas_pk primary key,
+    Matricula           numeric(8),
+    CodigoDisciplina    numeric(4),
+    CodigoCurso         numeric(3),
+    Nota1               numeric(4,2), Nota2 numeric(4,2),
+    Nota3               numeric(4,2), Nota4 numeric(4,2), 
+    constraint nota1_ck check ((nota1 >= 0) and (nota1 <= 10)),
+    constraint nota2_ck check ((nota2 >= 0) and (nota2 <= 10)),
+    constraint nota3_ck check ((nota3 >= 0) and (nota3 <= 10)),
+    constraint nota4_ck check ((nota4 >= 0) and (nota4 <= 10)));
+
+==========================================================================================================
+
+--- População das tabelas ---
+
+insert into Alunos(Matricula, NomeAluno) values (2026001, 'Maria');
+insert into Alunos(Matricula, NomeAluno) values (2026002, 'João');
+
+insert into Cursos(CodigoCurso, NomeCurso) values (1, 'Engenharia de Software');
+insert into Cursos(CodigoCurso, NomeCurso) values (2, 'Sistemas de Informações');
+
+insert into Disciplinas (CodigoDisciplina, NomeDisciplina) values (1, 'Banco de Dados I');
+insert into Disciplinas (CodigoDisciplina, NomeDisciplina) values (2, 'Banco de Dados II');
+
+insert into Notas (NrLancamentos, Matricula, CodigoDisciplina, CodigoCurso, Nota1, Nota2, Nota3, Nota4) values (1, 2026001, 1, 1, 8.00, 7.75, 9.50, 8.50);
+insert into Notas (NrLancamentos, Matricula, CodigoDisciplina, CodigoCurso, Nota1, Nota2, Nota3, Nota4) values (2, 2026002, 2, 2, 9.00, 8.75, 7.50, 8.50);
+
+==========================================================================================================
+
+--- Cricação dos papeis (ROLES) e Usuários ---
+    
+    -----   Secretaria -----
+
+create user Secretaria with encrypted password 'abc';
+grant connect on database Notas to Secretaria;
+GRANT select, insert, update ON ALL TABLES IN SCHEMA public TO Secretaria;
+
+    ------ Testes (Secretária) ---------
+\c notas secretaria;
+
+select * from Alunos; -OK
+select * from Cursos; -OK
+select * from Disciplinas; -OK
+select * from Notas; -OK
+
+insert into Alunos (Matricula, NomeAluno) values (2026003, 'Pedro'); -OK
+insert into Cursos (CodigoCurso, NomeCurso) values (3, 'Engenharia de Software'); -OK
+insert into Disciplinas (CodigoDisciplina, NomeDisciplina) values (3, 'Arquitetura de Software'); -OK
+insert into Notas (NrLancamentos, Matricula, CodigoDisciplina, CodigoCurso, Nota1, Nota2, Nota3, Nota4) values (3, 2026003, 3, 3, 8.00, 9.75, 7.50, 10.00); -OK
+
+update Alunos set NomeAluno = 'Thiago' where Matricula = 2026003; -OK
+update Cursos set NomeCurso = 'Sistema de Informação' where CodigoCurso = 3; -OK
+update Disciplinas set NomeDisciplina = 'Arquitetura de Software' where CodigoDisciplina = 1; -OK
+update Notas set Matricula = '2026004' where NrLancamentos = 1; -OK
+
+==========================================================================================================
+
+    ------   Aluno ------
+
+create user Aluno with encrypted password 'abc';
+grant connect on database Notas to Aluno;
+GRANT select ON ALL TABLES IN SCHEMA public TO Aluno;
+
+    ------ Testes (Aluno) ------
+\c notas aluno;
+
+select * from Alunos; -OK
+select * from Cursos; -OK
+select * from Disciplinas; -OK
+select * from Notas; -OK
+
+insert into Alunos (Matricula, NomeAluno) values (2026006, 'Amanda'); -NOT OK
+insert into Cursos (CodigoCurso, NomeCurso) values (4, 'Engenharia Mecânica'); -NOT OK
+insert into Disciplinas (CodigoDisciplina, NomeDisciplina) values (4, 'Programação Orientada a Objetos'); -NOT OK
+insert into Notas (NrLancamentos, Matricula, CodigoDisciplina, CodigoCurso, Nota1, Nota2, Nota3, Nota4) values (4, 2026004, 4, 4, 8.00, 9.75, 7.50, 10.00); -NOT OK
+
+update Alunos set NomeAluno = 'Marcos' where Matricula = 2026004; -NOT OK
+update Cursos set NomeCurso = 'Adiministração' where CodigoCurso = 4; -NOT OK
+update Disciplinas set NomeDisciplina = 'Economia' where CodigoDisciplina = 4; -NOT OK
+update Notas set Nota1 = 9.00 where NrLancamentos = 1; -NOT OK
+

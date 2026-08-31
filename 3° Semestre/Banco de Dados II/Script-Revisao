@@ -1,0 +1,140 @@
+------ Criação da Área de Tabalho e Banco de Dados ------
+create tablespace tbl_controlevendas location '/home/thiago/revisao';
+set default_tablespace=tbl_controlevendas;
+
+create database vendasveiculosdb;
+
+    ------ Usuários para Administras ------
+create user adminvendas with superuser encrypted password 'abc';
+
+==========================================================================================================
+
+------ Criação das Tabelas ------
+
+    ------ Tabela Veículos ------
+create table veiculos(
+    codigoveiculo         numeric(5) constraint veiculo_pk primary key,
+    modeloveiculo   varchar(50) constraint modelo_nn not null,
+    precovenda      numeric(10,2) constraint preco_nn not null,
+    constraint preco_ck check (precovenda > 0));
+
+    ------ Tabela Clientes ------
+create table clientes(
+    codigocliente   numeric(5) constraint cliente_pk primary key,
+    nomecliente     varchar(50) constraint nome_nn not null,
+    cpf             varchar(11));
+
+    ------ Tabela Vendas Veículos ------
+create table vendasveiculos(
+    codigovenda     numeric(5) constraint codigo_venda_pk primary key,
+    codigoveiculo   numeric(5),
+    codigocliente   numeric(5),
+    quantidade      numeric(10) constraint quantidade_venda_nn not null,
+    tipopagamento   varchar(1) constraint tipo_pagamento_ck check ((tipopagamento = 'A') or (tipopagamento = 'F')),
+    constraint codigo_veiculo_fk foreign key (codigoveiculo) references veiculos (codigoveiculo),
+    constraint codigo_cliente_fk foreign key (codigocliente) references clientes (codigocliente));
+
+==========================================================================================================
+
+------ Criação dos Papéis (ROLES) ------
+    
+    ------ Gerente de Vendas ------
+create role gerentevendas;
+grant connect on database vendasveiculosdb to gerentevendas;
+grant select, insert, update, delete on veiculos, clientes, vendasveiculos to gerentevendas;
+create user jose with encrypted password 'abc';
+grant gerentevendas to jose;
+
+    ------ Teste Gerente (Jose) ------
+create user jose with encrypted password 'abc';
+
+\c vendasveiculosdb jose;
+
+select * from veiculos; -OK
+select * from clientes; -OK
+select * from vendasveiculos; -OK
+
+insert into  veiculos (codigoveiculo, modeloveiculo, precovenda) values (1, 'Voyage', 60.000); -OK
+insert into  veiculos (codigoveiculo, modeloveiculo, precovenda) values (2, 'Sandero', 80.000); -OK
+
+insert into  clientes (codigocliente, nomecliente, cpf) values (1, 'Thiago', '12345678900'); -OK
+insert into  clientes (codigocliente, nomecliente, cpf) values (2, 'Maria', '98765432100'); -OK
+
+insert into  vendasveiculos (codigovenda, codigoveiculo, codigocliente, quantidade, tipopagamento) values (1, 1, 1, 1, 'A'); -OK
+insert into  vendasveiculos (codigovenda, codigoveiculo, codigocliente, quantidade, tipopagamento) values (2, 2, 2, 1, 'a'); -NOT OK
+insert into  vendasveiculos (codigovenda, codigoveiculo, codigocliente, quantidade, tipopagamento) values (2, 2, 2, 1, 'A'); -OK
+
+
+update veiculos set modeloveiculo = 'GOL' where codigoveiculo = 1; -OK
+update clientes set nomecliente = 'João' where codigocliente = 1; -OK
+update vendasveiculos set tipopagamento = 'F' where codigovenda = 1; -OK
+
+delete from vendasveiculos where codigovenda = 2; -OK
+delete from veiculos where codigoveiculo = 2; -OK
+delete from clientes where codigocliente = 2; -OK
+
+==========================================================================================================
+
+    ------ Vendedor ------
+create role vendedor;
+grant connect on database vendasveiculosdb to vendedor;
+grant select, insert on vendasveiculos to vendedor;
+create user maria with encrypted password 'abc';
+grant vendedor to maria;
+
+    ------ Teste Vendedor ------
+create user vendedor with encrypted password 'abc';
+
+\c vendasveiculosdb maria;
+
+select * from veiculos; -NOT OK
+select * from clientes; -NOT OK
+select * from vendasveiculos; -OK
+
+insert into  veiculos (codigoveiculo, modeloveiculo, precovenda) values (2, 'Voyage', 60.000); -NOT OK
+insert into  clientes (codigocliente, nomecliente, cpf) values (3, 'Tomé', '56712309822'); -NOT OK
+insert into  vendasveiculos (codigovenda, codigoveiculo, codigocliente, quantidade, tipopagamento) values (2, 1, 1, 1, 'A'); -OK
+
+
+update veiculos set modeloveiculo = 'Fusca' where codigoveiculo = 1; -NOT OK
+update clientes set nomecliente = 'Pedro' where codigocliente = 1; -NOT OK
+update vendasveiculos set tipopagamento = 'A' where codigovenda = 1; -NOT OK
+
+delete from vendasveiculos where codigovenda = 2; -NOT OK
+delete from veiculos where codigoveiculo = 2; -NOT OK
+delete from clientes where codigocliente = 2; -NOT OK
+
+==========================================================================================================
+
+    ------ Auditor de Vendas ------
+create role auditorvendas;
+grant connect on database vendasveiculosdb to auditorvendas;
+grant select on veiculos, clientes, vendasveiculos to auditorvendas;
+create user jailson with encrypted password 'abc';
+grant auditorvendas to jailson;
+
+    ------ Teste Auditor ------
+create user auditorvendas with encrypted passwor 'abc';
+
+\c vendasveiculosdb auditorvendas;
+
+select * from veiculos; -OK
+select * from clientes; -OK
+select * from vendasveiculos; -OK
+
+insert into  veiculos (codigoveiculo, modeloveiculo, precovenda) values (2, 'Voyage', 60.000); -NOT OK
+insert into  clientes (codigocliente, nomecliente, cpf) values (3, 'Tomé', '56712309822'); -NOT OK
+insert into  vendasveiculos (codigovenda, codigoveiculo, codigocliente, quantidade, tipopagamento) values (2, 1, 1, 1, 'A'); -NOT OK
+
+
+update veiculos set modeloveiculo = 'Fusca' where codigoveiculo = 1; -NOT OK
+update clientes set nomecliente = 'Pedro' where codigocliente = 1; -NOT OK
+update vendasveiculos set tipopagamento = 'A' where codigovenda = 1; -NOT OK
+
+delete from vendasveiculos where codigovenda = 2; -NOT OK
+delete from veiculos where codigoveiculo = 2; -NOT OK
+delete from clientes where codigocliente = 2; -NOT OK
+
+
+
+

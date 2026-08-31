@@ -1,0 +1,116 @@
+------ Criação do Superuser (AdmUniversidade) ------
+create user admuniversidade with superuser encrypted password 'abc';
+
+------ Criação do Banco (Universidade) ------
+create database universidade with owner = admuniversidade;
+
+==========================================================================================================
+
+------ Criação das Tabelas ------
+
+    ------ Instituto ------
+create table instituto(
+    codigoinstituto int constraint instituto_pk primary key,
+    nomeinstituto   varchar(40) constraint nome_instituto_nn not null);
+
+    ------ Curso ------
+create table curso(
+    codigocurso     int constraint curso_pk primary key,
+    codigoinstituto int,
+    nomecurso       varchar(40) constraint nome_curso_nn not null,
+    constraint codigo_instituto_curso_fk foreign key (codigoinstituto) references instituto (codigoinstituto));
+
+    ------ Disciplinas ------
+create table disciplinas(
+    codigodisciplina    int constraint disciplina_pk primary key,
+    codigocurso         int,
+    nomedisciplina      varchar(30) constraint nome_disciplina_nn not null,
+    cargahoraria        numeric(2),
+    constraint codigo_curso_disciplina_fk foreign key (codigocurso) references curso (codigocurso));
+
+    ------ Turma ------
+create table turma(
+    nrlancamento        int constraint turma_pk primary key,
+    matricula           int constraint matricula_nn not null,
+    codigodisciplina    int,
+    faltas              numeric(3),
+    nota1   numeric(4,2), nota2   numeric(4,2),
+    nota3   numeric(4,2), nota4   numeric(4,2));
+
+==========================================================================================================
+
+------ Criação dos Papéis (ROLES) e Usuários ------
+
+    ------ Coordenadores ------
+create user coordenadores with encrypted password 'abc';
+grant connect on database universidade to coordenadores;
+grant select, insert, update on curso to coordenadores;
+
+    ------ Testes (Coordenadores) ------
+\c universidade coordenadores
+
+select * from instituto; - NOT OK
+select * from curso; -OK
+select * from disciplinas; -NOT OK
+select * from turma; -NOT OK
+
+insert into instituto (codigoinstituto, nomeinstituto) values (1, 'UFR'); -NOT OK
+insert into curso (codigocurso, codigoinstituto, nomecurso) values (1, 1, 'Engenharia de Software'); -OK
+insert into disciplinas (codigodisciplina, codigocurso, nomedisciplina, cargahoraria) values (1, 1, 'Banco de Dados II', 64); - NOT OK
+insert into turma (nrlancamento, matricula, codigodisciplina, faltas, nota1, nota2, nota3, nota4) values (1, 2026001, 1, 0, 8.00, 9.75, 7.50, 10.00); -NOT OK
+
+update instituto set nomeinstituto = 'UFMT' where codigoinstituto = 1; -NOT OK
+update curso set nomecurso = 'Sistema de Informação' where codigocurso = 1; -OK
+update disciplinas set nomedisciplina = 'Banco de Dados I' where codigodisciplina = 1; -NOT OK
+update turma set matricula = '20260012' where nrlancamento = 1; -NOT OK
+
+==========================================================================================================
+
+    ------ Professores ------
+create user professores with encrypted password 'abc';
+grant connect on database universidade to professores;
+grant select on disciplinas, turma to professores;
+
+    ------ Testes (Professores)
+\c universidade professores;
+
+select * from instituto; - NOT OK
+select * from curso; -NOT OK
+select * from disciplinas; -OK
+select * from turma; -OK
+
+insert into instituto (codigoinstituto, nomeinstituto) values (1, 'UFR'); -NOT OK
+insert into curso (codigocurso, codigoinstituto, nomecurso) values (1, 1, 'Engenharia de Software'); -NOT OK
+insert into disciplinas (codigodisciplina, codigocurso, nomedisciplina, cargahoraria) values (1, 1, 'Banco de Dados II', 64); - NOT OK
+insert into turma (nrlancamento, matricula, codigodisciplina, faltas, nota1, nota2, nota3, nota4) values (1, 2026001, 1, 0, 8.00, 9.75, 7.50, 10.00); -NOT OK
+
+update instituto set nomeinstituto = 'UFMT' where codigoinstituto = 1; -NOT OK
+update curso set nomecurso = 'Sistema de Informação' where codigocurso = 1; -NOT OK
+update disciplinas set nomedisciplina = 'Banco de Dados I' where codigodisciplina = 1; -NOT OK
+update turma set matricula = '20260012' where nrlancamento = 1; -NOT OK
+
+==========================================================================================================
+
+    ------ Alunos ------
+create user alunos with encrypted password 'abc';
+grant connect on database universidade to alunos;
+grant select on turma to alunos;
+
+    ------ Testes (Alunos)
+\c universidade alunos;
+
+select * from instituto; - NOT OK
+select * from curso; -NOT OK
+select * from disciplinas; -NOT OK
+select * from turma; -OK
+
+insert into instituto (codigoinstituto, nomeinstituto) values (1, 'UFR'); -NOT OK
+insert into curso (codigocurso, codigoinstituto, nomecurso) values (1, 1, 'Engenharia de Software'); -NOT OK
+insert into disciplinas (codigodisciplina, codigocurso, nomedisciplina, cargahoraria) values (1, 1, 'Banco de Dados II', 64); - NOT OK
+insert into turma (nrlancamento, matricula, codigodisciplina, faltas, nota1, nota2, nota3, nota4) values (1, 2026001, 1, 0, 8.00, 9.75, 7.50, 10.00); -NOT OK
+
+update instituto set nomeinstituto = 'UFMT' where codigoinstituto = 1; -NOT OK
+update curso set nomecurso = 'Sistema de Informação' where codigocurso = 1; -NOT OK
+update disciplinas set nomedisciplina = 'Banco de Dados I' where codigodisciplina = 1; -NOT OK
+update turma set matricula = '20260012' where nrlancamento = 1; -NOT OK
+
