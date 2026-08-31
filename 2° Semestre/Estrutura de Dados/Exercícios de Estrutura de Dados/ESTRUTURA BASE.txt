@@ -1,0 +1,23 @@
+#include <locale.h>
+#include <stdio.h>
+
+int main() {
+    setlocale(LC_ALL, "Portuguese");
+    
+    // Declaração de variáveis
+
+    
+    
+    // Entrada 
+
+    
+    
+    // Processamento 
+    
+    
+    
+    //saída
+
+
+    return 0;
+}
