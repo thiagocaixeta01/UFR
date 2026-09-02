@@ -1,6 +1,6 @@
 class Usuario2 {
     readonly matricula: string;
-    private _nome: string;
+    // private _nome: string;
     private livrosEmprestados: number;
 
     constructor(matricula: string, nome: string){
@@ -8,9 +8,9 @@ class Usuario2 {
         this.livrosEmprestados = 0;
     }
 
-    set nome (valor: string){
-        if()
-    }
+    // set nome (valor: string){
+    //     if()
+    // }
 
     pegarLivro(): void{
         if(this.livrosEmprestados <= 3){

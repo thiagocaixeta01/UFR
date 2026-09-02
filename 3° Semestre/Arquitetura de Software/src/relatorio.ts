@@ -1,32 +1,29 @@
-import {Livro} from './livro';
+import { Livro } from './livro';
 
-export function titulos(livros: Livro[]): string[] { 
-    let titulos: string[] = [];
-    for (let livro of livros) {
-        titulos.push(livro.titulo);
-    }
-    
-    return titulos;
+export function titulos(livros: Livro[]): string[] {
+  const resultado: string[] = [];
+  for (const livro of livros) {
+    resultado.push(livro.titulo);
+  }
+  return resultado;
 }
 
-export function publicadosDepoisDe(livros: Livro[], ano: number): Livro[] { 
-    let livrosFiltrados: Livro[] = [];
-    for (let livro of livros) {
-        if (livro.ano > ano) {
-            livrosFiltrados.push(livro);
-        } 
+export function publicadosDepoisDe(livros: Livro[], ano: number): Livro[] {
+  const resultado: Livro[] = [];
+  for (const livro of livros) {
+    if (livro.ano > ano) {
+      resultado.push(livro);
     }
-
-    return livrosFiltrados;
+  }
+  return resultado;
 }
 
 export function maisAntigo(livros: Livro[]): Livro {
-    let antigo = livros[0];
-    for (let livro of livros) {
-        if (livro.ano < antigo.ano) {
-            antigo = livro;
-        }
+  let escolhido = livros[0];
+  for (const livro of livros) {
+    if (livro.ano < escolhido.ano) {
+      escolhido = livro;
     }
-
-    return antigo;
+  }
+  return escolhido;
 }
