@@ -1,0 +1,122 @@
+------ Criação da tablespace e o banco de dados ------
+create tablespace tbl_controlebiblioteca location '/tmp/ex3_revisao';
+set default_tablespace=tbl_controlebiblioteca;
+
+create database bibliotecadb;
+
+------ Criação do superuser (AdminBiblioteca) ------
+create user admbiblioteca with superuser encrypted password 'abc';
+
+==========================================================================================================
+
+------ Criação das Tabelas ------
+
+    ------ Tabela Livros ------
+create table livros(
+    codigolivro     numeric(5) constraint livro_pk primary key,
+    titulo          varchar(80) constraint titulo_nn not null,
+    exemplaresdisponiveis   numeric(5) constraint qtd_exemplares_nn not null,
+    constraint qtd_exemplares_ck check (exemplaresdisponiveis > 0));
+
+    ------ Tabela Leitores ------
+create table leitores(
+    codigoleitor    numeric(5) constraint leitor_pk primary key,
+    nomeleitor      varchar(50) constraint nome_nn not null,
+    statusconta     varchar(1) constraint status_conta_ck check ((statusconta = 'A') or (statusconta = 'B')));
+
+    ------ Tabela Emprestimos ------
+create table emprestimos(
+    codigoemprestimo    numeric(5) constraint emprestimo_pk primary key,
+    codigolivro         numeric(5),
+    codigoleitor        numeric(5),
+    dataemprestimo      date constraint data_nn not null,
+    valormulta          numeric(8,2) constraint valor_multa_ck check (valormulta >= 0),
+    constraint codigo_livro_fk foreign key (codigolivro) references livros (codigolivro),
+    constraint codigo_leitor_fk foreign key (codigoleitor) references leitores (codigoleitor));
+
+==========================================================================================================
+
+------ Criação dos papéis (ROLES) ------
+
+    ------ Bibliotecario Chefe ------
+create role bibliotecariochefe;
+grant connect on database bibliotecadb to bibliotecariochefe;
+grant select, insert, update, delete on livros, leitores, emprestimos to bibliotecariochefe;
+create user jose with encrypted password 'abc';
+grant bibliotecariochefe to jose;
+
+    ------ Teste Bibliotecario ------
+\c bibliotecadb bibliotecariochefe;
+
+select * from livros; -OK
+select * from leitores; -OK
+select * from emprestimos; -OK
+
+insert into livros (codigolivro, titulo, exemplaresdisponiveis) values (1, 'João e Maria', 5); -OK
+insert into leitores (codigoleitor, nomeleitor, statusconta) values (1, 'Marcos', 'A'); -OK
+insert into emprestimos (codigoemprestimo, codigolivro, codigoleitor, dataemprestimo, valormulta) values (1, 1, 1, '03/09/2026', 0); -OK
+
+update livros set titulo = 'Chapeuzinho' where codigolivro = 1; -OK
+update leitores set statusconta = 'B' where codigoleitor = 1; -OK
+update emprestimos set valormulta = '12.00' where codigoemprestimo = 1; -OK
+
+delete from emprestimos where codigoemprestimo = 1; -Ok
+delete from leitores where codigoleitor = 1; -OK
+delete from livros where codigolivro = 1; -OK
+    
+==========================================================================================================
+
+    ------ Atendente ------
+create role atendente;
+grant connect on database bibliotecadb to atendente;
+grant select on livros, leitores, emprestimos to atendente;
+grant insert, update on emprestimos to atendente;
+create user maria with encrypted password 'abc';
+grant atendente to maria;
+
+    ------ Teste Atendente ------
+\c bibliotecadb maria;
+
+select * from livros; -OK
+select * from leitores; -OK
+select * from emprestimos; -OK
+
+insert into livros (codigolivro, titulo, exemplaresdisponiveis) values (1, 'João e Maria', 5); -NOT OK
+insert into leitores (codigoleitor, nomeleitor, statusconta) values (1, 'Marcos', 'A'); -NOT OK
+insert into emprestimos (codigoemprestimo, codigolivro, codigoleitor, dataemprestimo, valormulta) values (1, 1, 1, '03/09/2026', 0); -OK
+
+update livros set titulo = 'Chapeuzinho' where codigolivro = 1; -NOT OK
+update leitores set statusconta = 'B' where codigoleitor = 1; -NOT OK
+update emprestimos set valormulta = '12.00' where codigoemprestimo = 1; -OK
+
+delete from emprestimos where codigoemprestimo = 1; -NOT Ok
+delete from leitores where codigoleitor = 1; -NOT OK
+delete from livros where codigolivro = 1; -NOT OK 
+
+==========================================================================================================
+
+    ------ Consultor ------
+create role consultor;
+grant connect on database bibliotecadb to consultor;
+grant select on livros to consultor;
+create user pedro with encrypted password 'abc';
+grant consultor to pedro;
+
+    ------ Teste Consultor ------
+\c bibliotecadb pedro;
+
+select * from livros; -OK
+select * from leitores; -NOT OK
+select * from emprestimos; -NOT OK
+
+insert into livros (codigolivro, titulo, exemplaresdisponiveis) values (1, 'João e Maria', 5); -NOT OK
+insert into leitores (codigoleitor, nomeleitor, statusconta) values (1, 'Marcos', 'A'); -NOT OK
+insert into emprestimos (codigoemprestimo, codigolivro, codigoleitor, dataemprestimo, valormulta) values (1, 1, 1, '03/09/2026', 0); -NOT OK
+
+update livros set titulo = 'Chapeuzinho' where codigolivro = 1; -NOT OK
+update leitores set statusconta = 'B' where codigoleitor = 1; -NOT OK
+update emprestimos set valormulta = '12.00' where codigoemprestimo = 1; -NOT OK
+
+delete from emprestimos where codigoemprestimo = 1; -NOT Ok
+delete from leitores where codigoleitor = 1; -NOT OK
+delete from livros where codigolivro = 1; -NOT OK

@@ -1,0 +1,142 @@
+------ Criação da tablespace e do Bando de Dados ------
+create tablespace tbl_controleescolar location '/tmp/Exe2_revisao';
+set default_tablespace=tbl_controleescolar;
+
+create database escoladb;
+
+==========================================================================================================
+
+------ Criação do superuser (AdminEcolar) ------
+create user adminescolar with superuser encrypted password 'abc';
+
+==========================================================================================================
+
+------ Criação das Tabelas ------
+
+    ------ Tabela Aluno ------
+create table aluno(
+    codigoaluno     numeric(5) constraint aluno_pk primary key,
+    nomealuno       varchar(50) constraint nome_aluno_nn not null,
+    datanascimento  date constraint data_nasc_nn not null);
+
+    ------ Tabela Cursos ------
+create table cursos(
+    codigocurso     numeric(5) constraint curso_pk primary key,
+    nomecurso       varchar(50) constraint nome_curso_nn not null,
+    valormensalidade    numeric(10,2) constraint valor_nn not null,
+    constraint valor_mensalidade_ck check (valormensalidade > 0));
+    
+    ------ Tabela Matriculas ------
+create table matriculas(
+    codigomatricula     numeric(5) constraint matricula_pk primary key,
+    codigoaluno         numeric(5),
+    codigocurso         numeric(5),
+    turno               varchar(1),
+    constraint turno_ck check ((turno = 'M') or (turno = 'T') or (turno = 'N')),
+    desconto            numeric(5,2),
+    constraint desconto_ck check (desconto > 0),
+    constraint codigo_aluno_fk foreign key (codigoaluno) references aluno (codigoaluno),
+    constraint codigo_curso_fk foreign key (codigocurso) references cursos (codigocurso));
+
+==========================================================================================================
+
+------ Populando as tabelas ------
+    
+    ------ Aluno ------
+insert into aluno (codigoaluno, nomealuno, datanascimento) values (1, 'José', '11/02/2007');
+insert into aluno (codigoaluno, nomealuno, datanascimento) values (2, 'Pedro', '23/08/2006');
+
+    ------ Cursos ------
+insert into cursos (codigocurso, nomecurso, valormensalidade) values (1, 'Sistemas de Informação', 1500);
+insert into cursos (codigocurso, nomecurso, valormensalidade) values (2, 'Engenharia de Software', 1600);
+
+    ------ Matriculas ------
+insert into matriculas (codigomatricula, codigoaluno, codigocurso, turno, desconto) values (001, 1, 1, 'N', 150.00);
+insert into matriculas (codigomatricula, codigoaluno, codigocurso, turno, desconto) values (002, 2, 2, 'N', 180.00);
+
+==========================================================================================================
+
+------ Criação dos papeis (ROLES) ------
+
+    ------ Diretor ------
+create role diretor;
+grant connect on database escoladb to diretor;
+grant select, insert, update, delete on aluno, cursos, matriculas to diretor;
+create user joao with encrypted password 'abc';
+grant diretor to joao; 
+
+    ------ Teste Diretor ------
+\c escoladb joao;
+
+select * from aluno; -OK
+select * from cursos; - OK
+select * from matriculas; -OK
+
+insert into aluno (codigoaluno, nomealuno, datanascimento) values (3, 'Thiago', '12/10/2006'); -OK
+insert into cursos (codigocurso, nomecurso, valormensalidade) values (3, 'Ciências da Computação', 1600); -OK
+insert into matriculas (codigomatricula, codigoaluno, codigocurso, turno, desconto) values (003, 3, 3, 'N', 190.00); -OK
+
+update aluno set nomealuno = 'Mathias' where codigoaluno = 3; -OK
+update cursos set valormensalidade = 1700 where codigocurso = 3; -OK
+update matriculas set desconto = 160 where codigomatricula = 003; -OK
+
+delete from matriculas where codigomatricula = 003; -OK
+delete from cursos where codigocurso = 3; -OK
+delete from aluno where codigoaluno = 3; -OK
+
+==========================================================================================================
+
+    ------ Secretaria ------
+create role secretaria;
+grant connect on database escoladb to secretaria;
+grant select, insert, update on aluno, matriculas to secretaria;
+create user maria with encrypted password 'abc';
+grant secretaria to maria;
+
+    ------ Teste Secretaria ------
+\c escoladb maria;
+
+select * from aluno; -OK
+select * from cursos; -NOT OK
+select * from matriculas; -OK
+
+insert into aluno (codigoaluno, nomealuno, datanascimento) values (3, 'Thiago', '12/10/2006'); -OK
+insert into cursos (codigocurso, nomecurso, valormensalidade) values (3, 'Ciências da Computação', 1600); -NOT OK
+insert into matriculas (codigomatricula, codigoaluno, codigocurso, turno, desconto) values (003, 2, 2, 'N', 190.00); -OK
+
+update aluno set nomealuno = 'Cleiton' where codigoaluno = 1; -OK
+update cursos set valormensalidade = 1500 where codigocurso = 1; -NOT OK
+update matriculas set desconto = 150 where codigomatricula = 001; -OK
+
+delete from matriculas where codigomatricula = 003; -NOT OK
+delete from cursos where codigocurso = 2; -NOT OK
+delete from aluno where codigoaluno = 2; -NOT OK
+
+==========================================================================================================
+
+    ------ Auditor Escolar ------
+create role auditorescolar;
+grant connect on database escoladb to auditorescolar;
+grant select on aluno, cursos, matriculas to auditorescolar;
+create user pedro with encrypted password 'abc';
+grant auditorescolar to pedro;
+
+    ------ Teste Auditor ------
+\c escoladb pedro;
+
+select * from aluno; -OK
+select * from cursos; -OK
+select * from matriculas; -OK
+
+insert into aluno (codigoaluno, nomealuno, datanascimento) values (4, 'João', '16/10/2006'); -NOT OK
+insert into cursos (codigocurso, nomecurso, valormensalidade) values (3, 'Ciências da Computação', 1600); -NOT OK
+insert into matriculas (codigomatricula, codigoaluno, codigocurso, turno, desconto) values (003, 2, 2, 'N', 190.00); -NOT OK
+
+update aluno set nomealuno = 'Cleiton' where codigoaluno = 1; -NOT OK
+update cursos set valormensalidade = 1500 where codigocurso = 1; -NOT OK
+update matriculas set desconto = 150 where codigomatricula = 001; -NOT OK
+
+delete from matriculas where codigomatricula = 003; -NOT OK
+delete from cursos where codigocurso = 2; -NOT OK
+delete from aluno where codigoaluno = 2; -NOT OK
+
