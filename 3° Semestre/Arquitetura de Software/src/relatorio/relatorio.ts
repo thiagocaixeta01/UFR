@@ -1,4 +1,4 @@
-import { Livro } from './livro';
+import { Livro } from '../catalogo';
 
 export function titulos(livros: Livro[]): string[] {
   const resultado: string[] = [];

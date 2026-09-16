@@ -1,0 +1,1 @@
+export { enviarEmail } from './notificacao';

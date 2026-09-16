@@ -1,12 +1,13 @@
-import { Autor } from './autor';
-import { Livro } from './livro';
-import { Acervo } from './acervo';
+import { Autor, Livro, Acervo } from './catalogo';
+import { Emprestimo } from './emprestimo';
 import { titulos, publicadosDepoisDe, maisAntigo } from './relatorio';
+import { PoliticaIntegral, PoliticaMetade, PoliticaIsenta } from './multa';
 
 const machado = new Autor('Machado de Assis');
 const orwell = new Autor('George Orwell');
 
 const acervo = new Acervo();
+const emprestimo = new Emprestimo(acervo);
 acervo.adicionar(new Livro('L001', 'Dom Casmurro', 1899, machado));
 acervo.adicionar(new Livro('L002', 'Memórias Póstumas de Brás Cubas', 1881, machado));
 acervo.adicionar(new Livro('L003', '1984', 1949, orwell));
@@ -54,3 +55,19 @@ const lista = acervo.listar();
 lista.push(new Livro('L900', 'Livro que nunca foi cadastrado', 2020, orwell));
 console.log('A lista que eu peguei tem:', lista.length);
 console.log('O acervo continua com:', acervo.total());
+
+console.log('');
+console.log('--- Empréstimo no dia 1, devolução no dia 12 ---');
+emprestimo.emprestar('L001', 'ana@ufr.br', new PoliticaIntegral(), 1);
+const multa = emprestimo.devolver('L001', 12);
+console.log('Multa cobrada: R$', multa.toFixed(2));
+
+console.log('');
+console.log('--- Mesmo atraso, outras categorias ---');
+console.log('Visitante (Ana): R$', multa.toFixed(2));
+emprestimo.emprestar('L002', 'bruno@ufr.br', new PoliticaMetade(), 1);
+console.log('Aluno (Bruno): R$',
+emprestimo.devolver('L002', 12).toFixed(2));
+emprestimo.emprestar('L003', 'carla@ufr.br', new PoliticaIsenta(), 1);
+console.log('Professor (Carla): R$',
+emprestimo.devolver('L003', 12).toFixed(2));
