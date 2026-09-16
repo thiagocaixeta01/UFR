@@ -22,6 +22,12 @@ export class PoliticaIsenta implements PoliticaMulta {
   }
 }
 
+export class PoliticaServidor implements PoliticaMulta {
+  aplicar(valorBase: number): number {
+    return valorBase - (valorBase * 0.3);
+  }
+}
+
 export function calcularMulta(diasAtraso: number,
   politica: PoliticaMulta): number {
   const valorBase = diasAtraso * MULTA_POR_DIA;
