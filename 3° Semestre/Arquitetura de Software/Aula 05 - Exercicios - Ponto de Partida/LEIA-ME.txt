@@ -1,0 +1,7 @@
+Abra o terminal dentro desta pasta e instale uma vez:
+
+    npm install
+
+Para rodar um exercício:
+
+    npx ts-node ex1-S/main.ts
