@@ -79,6 +79,12 @@ from computadores c
 group by c.descricaocomputador
 order by c.descricaocomputador
 
+-- Listagem dos computadores ordenados pela descrição --
+
+SELECT descricaocomputador
+FROM computadores
+ORDER BY descricaocomputador;
+
 -- 12 - Nome do software mais instalado
 
 select s.nomesoftware, count(*) soft_inst
@@ -118,3 +124,4 @@ from monitor m, fabricantes f
 where m.idfabricante = f.idfabricante
 group by f.nomefabricante
 order by maior_ocorrencia desc
+limit 1
