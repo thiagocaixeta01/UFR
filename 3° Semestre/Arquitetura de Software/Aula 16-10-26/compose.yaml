@@ -1,0 +1,15 @@
+services:
+  banco:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: aula07
+    volumes:
+      - dados:/var/lib/postgresql/data
+  painel:
+    image: adminer:4
+    ports:
+      - "8081:8080"
+    depends_on:
+      - banco
+volumes:
+  dados:
